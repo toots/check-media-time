@@ -1,0 +1,3 @@
+*.o
+.*.sw*
+check_media_time
