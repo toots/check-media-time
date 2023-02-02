@@ -1,5 +1,6 @@
 #include <fcntl.h>
 #include <libavformat/avformat.h>
+#include <termios.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -50,6 +51,10 @@ int main(int argc, char **argv) {
   int ret;
   char buf[1] = {' '};
   fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
+  struct termios t;
+  tcgetattr(STDIN_FILENO, &t);
+  t.c_lflag &= ~ECHO;
+  tcsetattr(STDIN_FILENO, TCSANOW, &t);
 
   if (argc <= 1) {
     fprintf(stderr, "Usage: %s <input url>\n", argv[0]);
@@ -98,7 +103,7 @@ int main(int argc, char **argv) {
     read(STDIN_FILENO, buf, 1);
 
     if (buf[0] == 'r')
-      printf("Resetting offset..\n");
+      printf("\nResetting offset..\n");
 
     if (start_media_time_ms == 0 || buf[0] == 'r') {
       start_media_time_ms = current_media_time_ms - current_time_ms;
