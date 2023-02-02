@@ -1,5 +1,7 @@
+#include <fcntl.h>
 #include <libavformat/avformat.h>
 #include <time.h>
+#include <unistd.h>
 
 #define NSEC_PER_SEC 1000000000
 
@@ -46,6 +48,8 @@ int main(int argc, char **argv) {
   struct timespec start_time, current_time;
   int64_t current_time_ms, start_media_time_ms = 0, current_media_time_ms;
   int ret;
+  char buf[1] = {' '};
+  fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL) | O_NONBLOCK);
 
   if (argc <= 1) {
     fprintf(stderr, "Usage: %s <input url>\n", argv[0]);
@@ -61,7 +65,7 @@ int main(int argc, char **argv) {
 
   ret = avformat_find_stream_info(format_context, 0);
   if (ret < 0) {
-    fprintf(stderr, "Failed to retrieve input stream information");
+    fprintf(stderr, "Failed to retrieve input stream information\n");
     exit(1);
   }
 
@@ -73,7 +77,7 @@ int main(int argc, char **argv) {
 
   ret = clock_gettime(CLOCK_MONOTONIC, &start_time);
   if (ret < 0) {
-    fprintf(stderr, "Error while getting current clock time");
+    fprintf(stderr, "Error while getting current clock time\n");
     exit(1);
   }
 
@@ -82,7 +86,7 @@ int main(int argc, char **argv) {
   while (av_read_frame(format_context, pkt) >= 0) {
     ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
     if (ret < 0) {
-      fprintf(stderr, "Error while getting current clock time");
+      fprintf(stderr, "Error while getting current clock time\n");
       exit(1);
     }
 
@@ -91,7 +95,12 @@ int main(int argc, char **argv) {
     stream = format_context->streams[pkt->stream_index];
     current_media_time_ms = TIME_MS(pkt->pts, stream->time_base);
 
-    if (start_media_time_ms == 0) {
+    read(STDIN_FILENO, buf, 1);
+
+    if (buf[0] == 'r')
+      printf("Resetting offset..\n");
+
+    if (start_media_time_ms == 0 || buf[0] == 'r') {
       start_media_time_ms = current_media_time_ms - current_time_ms;
     }
 
