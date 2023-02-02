@@ -18,7 +18,7 @@ Reading from: <URL
 status: media time: 4992ms, clock time: 997ms, diff: 3995ms
 ```
 
-If you hit `r+enter`, you can reset the offset timer:
+If you hit `r<enter>`, you can reset the offset timer:
 ```
 ./check_media_time <URL>
 Reading from: <URL>
