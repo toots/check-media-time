@@ -32,13 +32,11 @@ struct timespec timespec_sub(struct timespec ts1, struct timespec ts2) {
   return timespec_normalise(ts1);
 }
 
-uint64_t timespec_to_ms(struct timespec ts) {
+int64_t timespec_to_ms(struct timespec ts) {
   return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
 }
 
 #define TIME_MS(ts, time_base) (time_base.num * ((1000 * ts) / time_base.den))
-
-#define RESET_TIME_MS 3000
 
 int main(int argc, char **argv) {
   const char *filename;
@@ -46,8 +44,8 @@ int main(int argc, char **argv) {
   AVStream *stream;
   AVPacket *pkt = NULL;
   struct timespec start_time, current_time;
-  uint64_t current_time_ms, start_media_time_ms = 0, current_media_time_ms;
-  int ret, reset_done = 0;
+  int64_t current_time_ms, start_media_time_ms = 0, current_media_time_ms;
+  int ret;
 
   if (argc <= 1) {
     fprintf(stderr, "Usage: %s <input url>\n", argv[0]);
@@ -80,25 +78,8 @@ int main(int argc, char **argv) {
   }
 
   printf("Reading from: %s\n", filename);
-  printf("status: Waiting for %.02fs...", (float)RESET_TIME_MS / (float)1000);
   fflush(stdout);
   while (av_read_frame(format_context, pkt) >= 0) {
-    stream = format_context->streams[pkt->stream_index];
-    current_media_time_ms = TIME_MS(pkt->pts, stream->time_base);
-
-    if (start_media_time_ms == 0)
-      start_media_time_ms = current_media_time_ms;
-
-    current_media_time_ms = current_media_time_ms - start_media_time_ms;
-
-    if (RESET_TIME_MS < current_media_time_ms && !reset_done) {
-      reset_done = 1;
-      start_media_time_ms = current_media_time_ms;
-    }
-
-    if (!reset_done)
-      continue;
-
     ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
     if (ret < 0) {
       fprintf(stderr, "Error while getting current clock time");
@@ -106,6 +87,15 @@ int main(int argc, char **argv) {
     }
 
     current_time_ms = timespec_to_ms(timespec_sub(current_time, start_time));
+
+    stream = format_context->streams[pkt->stream_index];
+    current_media_time_ms = TIME_MS(pkt->pts, stream->time_base);
+
+    if (start_media_time_ms == 0) {
+      start_media_time_ms = current_media_time_ms - current_time_ms;
+    }
+
+    current_media_time_ms = current_media_time_ms - start_media_time_ms;
 
     printf("\33[2K\r");
     printf("status: media time: %" PRId64 "ms, clock time: %" PRId64
