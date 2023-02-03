@@ -1,3 +1,4 @@
 *.o
 .*.sw*
 check_media_time
+check_media_time.d*

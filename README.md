@@ -4,7 +4,7 @@ Compare current media time on a media stream with the local monotonous clock to 
 
 ### Build
 
-You will need the `libavformat` to be detectable by `pkg-config`
+You will need the `libavformat`, `libavcodec` and `libavutil` to be detectable by `pkg-config`
 
 ```
 make
