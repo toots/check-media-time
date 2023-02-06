@@ -65,8 +65,8 @@ int main(int argc, char **argv) {
   filename = argv[1];
   const AVInputFormat *format = av_find_input_format("s16be");
   AVDictionary *options = NULL;
-  av_opt_set_int(&options, "ar", 48000, 0);
-  av_opt_set_int(&options, "ac", 2, 0);
+  av_opt_set_int(&options, "sample_rate", 48000, 0);
+  av_opt_set_int(&options, "channels", 2, 0);
   ret = avformat_open_input(&format_context, filename, format, &options);
   if (ret < 0) {
     fprintf(stderr, "Could not open %s: %s\n", filename, av_err2str(ret));
