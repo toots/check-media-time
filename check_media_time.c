@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     current_time_ms = timespec_to_ms(timespec_sub(current_time, start_time));
 
     stream = format_context->streams[pkt->stream_index];
-    current_media_time_ms = TIME_MS(pkt->pts, stream->time_base) / 2;
+    current_media_time_ms = 44100 * TIME_MS(pkt->pts, stream->time_base) / (2 * 48000);
 
     read(STDIN_FILENO, buf, 1);
 
