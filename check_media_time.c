@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
   }
 
   filename = argv[1];
-  const AVInputFormat *format = av_find_input_format("pcm_s16be");
+  const AVInputFormat *format = av_find_input_format("s16be");
   ret = avformat_open_input(&format_context, filename, format, NULL);
   if (ret < 0) {
     fprintf(stderr, "Could not open %s: %s\n", filename, av_err2str(ret));
